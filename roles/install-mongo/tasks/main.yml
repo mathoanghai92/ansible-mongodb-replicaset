@@ -1,0 +1,103 @@
+---
+### Don't forget to run common_configuration_oracle_linux" role first! ###
+### Mount separate disk to /var/lib/mongo ! ###
+
+# Install package for Install MongoDB
+- name: ensure a list of packages installed
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - cyrus-sasl
+      - cyrus-sasl-gssapi
+      - cyrus-sasl-plain
+      - krb5-libs
+      - libcurl
+      - net-snmp
+      - openldap
+      - openssl
+      - xz-libs
+  become: yes
+
+# Install MongoDB
+
+# - name: Create mongod group
+#   group:
+#     name: mongod
+#     state: present
+
+- name: Create mongod group
+  ansible.builtin.group:
+    name: mongod
+    state: present
+
+# - name: Create mongod user
+#   user:
+#     name: mongod
+#     group: mongod
+
+- name: Create mongod user
+  ansible.builtin.user:
+    name: mongod
+    group: mongod
+
+# - name: Create directories for MongoDB
+#   file:
+#     path: "{{ item }}"
+#     state: directory
+#     owner: mongod
+#     group: mongod
+#   loop:
+#     - /var/log/mongodb
+#     - /var/lib/mongo
+#     - /var/run/mongodb
+
+- name: Create directories for MongoDB
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: mongod
+    group: mongod
+  loop:
+    - /var/log/mongodb
+    - /var/lib/mongo
+    - /var/run/mongodb
+
+# - name: Create MongoDB installation directory
+#   file:
+#     path: /mongo
+#     state: directory
+
+- name: Create MongoDB installation directory
+  ansible.builtin.file:
+    path: /mongo
+    state: directory
+
+- name: Copy MongoDB tarball to all serverdb
+  ansible.builtin.copy:
+    src: "roles/mongo-replica/files/mongodb-linux-x86_64-enterprise-rhel80-4.4.15.tgz"
+    dest: /mongo/mongodb-linux-x86_64-enterprise-rhel80-4.4.15.tgz
+    mode: 0755
+
+- name: Unarchive a file tarball and start service mongodb on all serverdb
+  ansible.builtin.unarchive:
+    src: /mongo/mongodb-linux-x86_64-enterprise-rhel80-4.4.15.tgz
+    dest: /mongo/
+    remote_src: yes
+
+
+# Create MongoDB service file
+  - name: Create MongoDB service file
+    template:
+      src: mongod.service.j2
+      dest: /usr/lib/systemd/system/mongod.service
+
+# Create MongoDB config file
+  - name: Create MongoDB config file
+    template:
+      src: mongod.conf.j2
+      dest: /etc/mongod.conf
+    notify:
+      - Reload systemd
+      - Restart mongod
+      - Enable mongod service

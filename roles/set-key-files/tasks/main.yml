@@ -1,0 +1,13 @@
+---
+# Create master key
+ - name: Create MongoDB key file on the primary server
+      ansible.builtin.shell:
+        cmd: 'openssl rand -base64 741 > /mongo/rs01.key && chmod 600 /mongo/rs01.key && chown -R mongod:mongod /mongo/'
+
+# Copy master key
+    - name: Copy MongoDB key file to secondary servers
+      ansible.builtin.copy:
+        src: /mongo/rs01.key
+        dest: /mongo/rs01.key
+      delegate_to: "{{ item }}"
+      with_items: "{{ groups['secondary'] }}"

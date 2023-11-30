@@ -1,0 +1,35 @@
+---
+# Add new instructions to the /etc/mongod.conf
+  # - set_fact:
+  #     mongod_template: "{{ lookup('template', '../templates/mongod.conf-cluster.j2') }}"
+
+  # - name: Edit /etc/mongod.conf
+  #   blockinfile:
+  #     path: /etc/mongod.conf
+  #     block: '{{ mongod_template }}'
+  #     state: present
+  #   notify:
+  #     - Restart mongod
+
+- name: Update mongod.conf with bindIp
+  ansible.builtin.lineinfile:
+    path: /etc/mongod.conf
+    regexp: '^  bindIp:'
+    line: '  bindIp: 127.0.0.1,{{ hostvars[inventory_hostname].ansible_default_ipv4.address }}'
+  with_items: "{{ groups['dbservers'] }}"
+
+- name: Add replication settings in /etc/mongod.conf
+  ansible.builtin.lineinfile:
+    path: /etc/mongod.conf
+    regexp: '^#*replication.replSetName.*'
+    line: 'replication.replSetName: rs01'
+  notify:
+    - Restart mongod
+
+
+# - name: Add replication settings in /etc/mongod.conf
+#   ansible.builtin.lineinfile:
+#     path: /etc/mongod.conf
+#     line: |
+#       replication:
+#         replSetName: rs01  #replica set's name

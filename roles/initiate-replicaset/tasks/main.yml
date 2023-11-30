@@ -1,0 +1,7 @@
+- name: Initialize MongoDB Replica Set
+  ansible.builtin.shell:
+    cmd: "/mongo/mongodb-linux-x86_64-enterprise-rhel80-4.4.15/bin/mongo <<EOF\nrs.initiate();\n{% for host in groups['secondary'] %}rs.add(\"{{ host }}:27017\"){% if not loop.last %}\n{% endif %}{% endfor %}\nrs.status();\nexit\nEOF"
+
+- name: Create MongoDB Admin User
+  ansible.builtin.shell:
+    cmd: "/mongo/mongodb-linux-x86_64-enterprise-rhel80-4.4.15/bin/mongo <<EOF\nuse admin\ndb.createUser({\n  user: \"basebs01\",\n  pwd: \"Basebs@123\",\n  roles: [\n    {role: \"root\", db: \"admin\"}\n  ]\n})\nexit\nEOF"

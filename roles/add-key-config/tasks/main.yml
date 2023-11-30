@@ -1,0 +1,11 @@
+---
+- name: Add security settings in /etc/mongod.conf
+  ansible.builtin.lineinfile:
+    path: /etc/mongod.conf
+    regexp: '^\s*security.authorization.*|^\s*security.keyFile.*'
+    line: |
+      security:
+        authorization: enabled
+        keyFile: /mongo/rs01.key
+  notify:
+    - Restart mongod

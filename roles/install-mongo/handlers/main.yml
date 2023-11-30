@@ -1,0 +1,24 @@
+---
+
+# Reload Systemd
+  # - name: Reload systemd
+  #   ansible.builtin.systemd:
+  #     name: daemon-reload
+  #     state: reload
+
+  - name: Reload systemd
+    ansible.builtin.systemd:
+      daemon_reload: yes
+
+# Restart mongod service
+  - name: Restart mongod
+    systemd:
+      name: mongod
+      state: restarted
+
+# Enable mongod service for automatic startup
+  - name: Enable mongod service
+    systemd:
+      name: mongod
+      enabled: yes
+

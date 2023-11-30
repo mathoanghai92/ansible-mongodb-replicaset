@@ -1,0 +1,32 @@
+---
+# Deploy MongoDB Replicaset with three nodes: Primary, 2 Secondary
+
+# Install mongodb on each node
+- hosts: all
+  become: yes
+  roles:
+    - install-mongo
+
+# Add config ReplicaSet on all host and restart
+- hosts: all
+  become: yes
+  roles:
+    - add-replicaset-config
+
+# Initiate ReplicaSet on Primary node, wait for master, add secondary
+- hosts: primary
+  become: yes
+  roles:
+    - initiate-replicaset
+
+# Create MongoDB key file on the primary server and copy to secondary servers
+- hosts: primary
+  become: yes
+  roles:
+    - set-key-files
+
+# Add key config security - all host
+- hosts: all
+  become: yes
+  roles:
+    - add-key-config
